@@ -14,7 +14,7 @@ public class EmployeeController {
         this.employeeService = employeeService;
     }
 
-    //UC1 --> CRUD operations on employee database through REST API's
+    //UC2 --> CRUD operations on employee database through REST API's
     @GetMapping("/get/{id}")
     public EmployeeDTO get(@PathVariable Long id){
         return employeeService.get(id);
