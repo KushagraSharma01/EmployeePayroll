@@ -1,13 +1,20 @@
 package com.example.EmployeePayroll.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+
 public class EmployeeDTO {
 
+    @NotBlank
+    @Pattern(regexp = "^[A-Z][a-zA-Z]{2,}( [A-Z][a-zA-Z]{2,})*$")
     String name;
+
     Long salary;
 
     Long id;
 
     public EmployeeDTO(String name, Long salary) {
+
         this.name = name;
         this.salary = salary;
 

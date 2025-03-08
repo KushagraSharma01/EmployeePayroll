@@ -5,6 +5,7 @@ import com.example.EmployeePayroll.dto.EmployeeDTO;
 import com.example.EmployeePayroll.entities.EmployeeEntity;
 import com.example.EmployeePayroll.interfaces.IEmployeeService;
 import com.example.EmployeePayroll.repositories.EmployeeRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,85 +18,112 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EmployeeService implements IEmployeeService {
 
-
-
     @Autowired
     EmployeeRepository employeeRepository;
 
-    ObjectMapper obj = new ObjectMapper();
+    public EmployeeDTO get(Long id){
+        try{
+            EmployeeEntity empFound = employeeRepository.findById(id).orElseThrow(()->
+            {
+                return new RuntimeException();
+            });
 
-    public EmployeeDTO get(Long id) throws Exception{
+            EmployeeDTO empDto = new EmployeeDTO(empFound.getName(), empFound.getSalary());
+            empDto.setId(empFound.getId());
 
-        EmployeeEntity empFound = employeeRepository.findById(id).orElseThrow(()->
-        {
-            log.error("Cannot find employee with id {}", id);
-            return new RuntimeException("Cannot find employee with given id");
-        });
+            log.info("Employee DTO send for id: {} is : {}", id, getJSON(empDto));
 
-        EmployeeDTO empDto = new EmployeeDTO(empFound.getName(), empFound.getSalary());
-        empDto.setId(empFound.getId());
-
-        log.info("Employee DTO send for id: {} is : {}", id, obj.writeValueAsString(empDto));
-
-        return empDto;
-
+            return empDto;
+        }
+        catch(RuntimeException e){
+            log.error("Exception : {} due to : {} ", e, "Cannot find employee with given id");
+        }
+        return null;
     }
 
-    public EmployeeDTO create(EmployeeDTO newEmp) throws Exception{
+    public EmployeeDTO create(EmployeeDTO newEmp){
 
         EmployeeEntity newEntity = new EmployeeEntity(newEmp.getName(), newEmp.getSalary());
 
         employeeRepository.save(newEntity);
 
-        log.info("Employee saved in db: {}", obj.writeValueAsString(newEntity));
+        log.info("Employee saved in db: {}", getJSON(newEntity));
 
         EmployeeDTO emp = new EmployeeDTO(newEntity.getName(), newEntity.getSalary());
 
         emp.setId(newEntity.getId());
 
-        log.info("Employee DTO sent: {}", obj.writeValueAsString(emp));
+        log.info("Employee DTO sent: {}", getJSON(emp));
 
         return emp;
+
     }
 
-    public EmployeeDTO edit(EmployeeDTO emp, Long id)throws Exception{
+    public EmployeeDTO edit(EmployeeDTO emp, Long id){
         //finding employee
-        EmployeeEntity foundEmp =  employeeRepository.findById(id).orElseThrow(()->
-        {
-            log.error("Cannot find employee with id : {}", id);
-            return new RuntimeException("cannot find employee with given id");
-        });
+        try {
+            EmployeeEntity foundEmp = employeeRepository.findById(id).orElseThrow(() ->
+            {
+                return new RuntimeException("cannot find employee with given id");
+            });
 
-        //updating details
-        foundEmp.setName(emp.getName());
-        foundEmp.setSalary(emp.getSalary());
+            //updating details
+            foundEmp.setName(emp.getName());
+            foundEmp.setSalary(emp.getSalary());
 
-        //saving in database
-        employeeRepository.save(foundEmp);
+            //saving in database
+            employeeRepository.save(foundEmp);
 
-        log.info("Employee saved after editing in db is : {}", obj.writeValueAsString(foundEmp));
+            log.info("Employee saved after editing in db is : {}", getJSON(foundEmp));
 
-        //creating dto to return
-        EmployeeDTO employeeDTO = new EmployeeDTO(foundEmp.getName(), foundEmp.getSalary());
-        employeeDTO.setId(foundEmp.getId());
+            //creating dto to return
+            EmployeeDTO employeeDTO = new EmployeeDTO(foundEmp.getName(), foundEmp.getSalary());
+            employeeDTO.setId(foundEmp.getId());
 
 
-        return employeeDTO;
+            return employeeDTO;
+        }
+        catch (RuntimeException e){
+            log.error("Exception : {} due to : {} ", e, "cannot find employee with given id");
+        }
 
+        return null;
     }
 
     public String delete(Long id){
+        try {
+            EmployeeEntity foundEmp = employeeRepository.findById(id).orElseThrow(() ->
+            {
+                return new RuntimeException();
+            });
 
-        EmployeeEntity foundEmp = employeeRepository.findById(id).orElseThrow(()->
-        {
-            log.error("Cannot find user with id : {}", id);
-            return new RuntimeException("cannot find user with given id");
-        });
+            employeeRepository.delete(foundEmp);
 
-        employeeRepository.delete(foundEmp);
+            return "Employee Deleted";
+        }
+        catch(RuntimeException e){
+            log.error("Exception : {} Reason : Cannot find user with id : {}", e, id);
+        }
+        return null;
+    }
 
-        return "Employee Deleted";
+    public String clear(){
 
+        employeeRepository.deleteAll();
+        log.info("all data inside db is deleted");
+
+        return "Database cleared";
+    }
+
+    public String getJSON(Object object){
+        try {
+            ObjectMapper obj = new ObjectMapper();
+            return obj.writeValueAsString(object);
+        }
+        catch(JsonProcessingException e){
+            log.error("Reason : {} Exception : {}", "Conversion error from Java Object to JSON");
+        }
+        return null;
     }
 
 

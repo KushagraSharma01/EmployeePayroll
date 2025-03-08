@@ -7,13 +7,13 @@ import org.springframework.stereotype.Service;
 @Service
 public interface IEmployeeService {
 
-    public EmployeeDTO get(Long id) throws Exception;
+    public EmployeeDTO get(Long id) ;
 
-    public EmployeeDTO create(EmployeeDTO newEmp) throws Exception;
+    public EmployeeDTO create(EmployeeDTO newEmp) ;
 
-    public EmployeeDTO edit(EmployeeDTO emp, Long id) throws Exception;
+    public EmployeeDTO edit(EmployeeDTO emp, Long id) ;
 
     public String delete(Long id);
 
-
+    public String clear();
 }
